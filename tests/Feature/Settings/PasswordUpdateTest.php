@@ -1,15 +1,13 @@
 <?php
 
-use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Hash;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
-
 test('password can be updated', function () {
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
     $response = $this
-        ->actingAs($user)
+        ->actingAs($customer)
         ->from('/settings/password')
         ->put('/settings/password', [
             'current_password' => 'password',
@@ -21,14 +19,14 @@ test('password can be updated', function () {
         ->assertSessionHasNoErrors()
         ->assertRedirect('/settings/password');
 
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check('new-password', $customer->refresh()->password))->toBeTrue();
 });
 
 test('correct password must be provided to update password', function () {
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
     $response = $this
-        ->actingAs($user)
+        ->actingAs($customer)
         ->from('/settings/password')
         ->put('/settings/password', [
             'current_password' => 'wrong-password',

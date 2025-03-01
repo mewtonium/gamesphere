@@ -1,10 +1,8 @@
 <?php
 
-use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
-
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('reset password link screen can be rendered', function () {
     $response = $this->get('/forgot-password');
@@ -15,21 +13,21 @@ test('reset password link screen can be rendered', function () {
 test('reset password link can be requested', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->post('/forgot-password', ['email' => $customer->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class);
+    Notification::assertSentTo($customer, ResetPassword::class);
 });
 
 test('reset password screen can be rendered', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->post('/forgot-password', ['email' => $customer->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
+    Notification::assertSentTo($customer, ResetPassword::class, function ($notification) {
         $response = $this->get('/reset-password/'.$notification->token);
 
         $response->assertStatus(200);
@@ -41,14 +39,14 @@ test('reset password screen can be rendered', function () {
 test('password can be reset with valid token', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->post('/forgot-password', ['email' => $customer->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+    Notification::assertSentTo($customer, ResetPassword::class, function ($notification) use ($customer) {
         $response = $this->post('/reset-password', [
             'token' => $notification->token,
-            'email' => $user->email,
+            'email' => $customer->email,
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);

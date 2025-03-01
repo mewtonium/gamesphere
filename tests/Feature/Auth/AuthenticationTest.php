@@ -1,8 +1,6 @@
 <?php
 
-use App\Models\User;
-
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+use App\Models\Customer;
 
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
@@ -10,11 +8,11 @@ test('login screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+test('customers can authenticate using the login screen', function () {
+    $customer = Customer::factory()->create();
 
     $response = $this->post('/login', [
-        'email' => $user->email,
+        'email' => $customer->email,
         'password' => 'password',
     ]);
 
@@ -22,21 +20,21 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
 });
 
-test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
+test('customers can not authenticate with invalid password', function () {
+    $customer = Customer::factory()->create();
 
     $this->post('/login', [
-        'email' => $user->email,
+        'email' => $customer->email,
         'password' => 'wrong-password',
     ]);
 
     $this->assertGuest();
 });
 
-test('users can logout', function () {
-    $user = User::factory()->create();
+test('customers can logout', function () {
+    $customer = Customer::factory()->create();
 
-    $response = $this->actingAs($user)->post('/logout');
+    $response = $this->actingAs($customer)->post('/logout');
 
     $this->assertGuest();
     $response->assertRedirect('/');

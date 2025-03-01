@@ -14,7 +14,7 @@ test('the page renders', function () {
     $customer = Customer::factory()->create();
 
     $response = $this
-        ->actingAs($user)
+        ->actingAs($user, 'nexus')
         ->get(CustomerResource::getUrl('edit', ['record' => $customer]));
 
     $response
@@ -53,7 +53,7 @@ test('a customer can be updated', function () {
 
     $component->assertHasNoFormErrors();
 
-    $customer = $customer->fresh();
+    $customer->refresh();
 
     expect($firstName)->toBe($customer->first_name);
     expect($lastName)->toBe($customer->last_name);

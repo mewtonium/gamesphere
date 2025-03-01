@@ -25,7 +25,7 @@ test('that nexus users can authenticate', function () {
         ->assertHasNoFormErrors()
         ->assertRedirectToRoute('filament.nexus.pages.dashboard');
 
-    $this->assertAuthenticatedAs($user);
+    $this->assertAuthenticatedAs($user, 'nexus');
 });
 
 test('that nexus users cannot authenticate if login details are incorrect', function () {
@@ -40,14 +40,14 @@ test('that nexus users cannot authenticate if login details are incorrect', func
         ->call('authenticate');
 
     $component->assertHasFormErrors(['email'])->assertNoRedirect();
-    $this->assertGuest();
+    $this->assertGuest('nexus');
 });
 
 test('that nexus users can logout', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('filament.nexus.auth.logout'));
+    $response = $this->actingAs($user, 'nexus')->post(route('filament.nexus.auth.logout'));
 
     $response->assertRedirectToRoute('filament.nexus.auth.login');
-    $this->assertGuest();
+    $this->assertGuest('nexus');
 });

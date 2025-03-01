@@ -12,7 +12,7 @@ use function Pest\Livewire\livewire;
 test('the page renders', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get(CustomerResource::getUrl('index'));
+    $response = $this->actingAs($user, 'nexus')->get(CustomerResource::getUrl('index'));
 
     $response->assertSuccessful();
 });
