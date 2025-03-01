@@ -1,26 +1,25 @@
 <?php
 
-use App\Models\User;
-
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+use App\Models\Customer;
 
 test('profile page is displayed', function () {
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
     $response = $this
-        ->actingAs($user)
+        ->actingAs($customer)
         ->get('/settings/profile');
 
     $response->assertOk();
 });
 
 test('profile information can be updated', function () {
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
     $response = $this
-        ->actingAs($user)
+        ->actingAs($customer)
         ->patch('/settings/profile', [
-            'name' => 'Test User',
+            'first_name' => 'Test',
+            'last_name' => 'Customer',
             'email' => 'test@example.com',
         ]);
 
@@ -28,35 +27,37 @@ test('profile information can be updated', function () {
         ->assertSessionHasNoErrors()
         ->assertRedirect('/settings/profile');
 
-    $user->refresh();
+    $customer->refresh();
 
-    expect($user->name)->toBe('Test User');
-    expect($user->email)->toBe('test@example.com');
-    expect($user->email_verified_at)->toBeNull();
+    expect($customer->first_name)->toBe('Test');
+    expect($customer->last_name)->toBe('Customer');
+    expect($customer->email)->toBe('test@example.com');
+    expect($customer->email_verified_at)->toBeNull();
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
     $response = $this
-        ->actingAs($user)
+        ->actingAs($customer)
         ->patch('/settings/profile', [
-            'name' => 'Test User',
-            'email' => $user->email,
+            'first_name' => 'Test',
+            'last_name' => 'Customer',
+            'email' => $customer->email,
         ]);
 
     $response
         ->assertSessionHasNoErrors()
         ->assertRedirect('/settings/profile');
 
-    expect($user->refresh()->email_verified_at)->not->toBeNull();
+    expect($customer->refresh()->email_verified_at)->not->toBeNull();
 });
 
-test('user can delete their account', function () {
-    $user = User::factory()->create();
+test('customer can delete their account', function () {
+    $customer = Customer::factory()->create();
 
     $response = $this
-        ->actingAs($user)
+        ->actingAs($customer)
         ->delete('/settings/profile', [
             'password' => 'password',
         ]);
@@ -66,14 +67,14 @@ test('user can delete their account', function () {
         ->assertRedirect('/');
 
     $this->assertGuest();
-    expect($user->fresh())->toBeNull();
+    expect($customer->fresh())->toBeNull();
 });
 
 test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
+    $customer = Customer::factory()->create();
 
     $response = $this
-        ->actingAs($user)
+        ->actingAs($customer)
         ->from('/settings/profile')
         ->delete('/settings/profile', [
             'password' => 'wrong-password',
@@ -83,5 +84,5 @@ test('correct password must be provided to delete account', function () {
         ->assertSessionHasErrors('password')
         ->assertRedirect('/settings/profile');
 
-    expect($user->fresh())->not->toBeNull();
+    expect($customer->fresh())->not->toBeNull();
 });
