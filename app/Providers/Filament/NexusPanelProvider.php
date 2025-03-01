@@ -51,6 +51,8 @@ class NexusPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->passwordReset()
+            ->authPasswordBroker('users')
             ->authGuard('nexus')
             ->authMiddleware([
                 Authenticate::class,
