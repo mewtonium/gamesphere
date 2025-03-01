@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Customer;
 use App\Models\User;
 use Filament\Pages\Auth\Login;
 
@@ -49,5 +50,22 @@ test('that nexus users can logout', function () {
     $response = $this->actingAs($user, 'nexus')->post(route('filament.nexus.auth.logout'));
 
     $response->assertRedirectToRoute('filament.nexus.auth.login');
+    $this->assertGuest('nexus');
+});
+
+test('a customer cannot authenticate as a nexus user', function () {
+    $customer = Customer::factory()->create();
+
+    $component = livewire(Login::class)
+        ->fillForm([
+            'email' => $customer->email,
+            'password' => 'password',
+        ])
+        ->call('authenticate');
+
+    $component
+        ->assertHasFormErrors(['email'])
+        ->assertNoRedirect();
+
     $this->assertGuest('nexus');
 });
