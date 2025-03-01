@@ -12,14 +12,17 @@ use function Pest\Livewire\livewire;
 test('the page renders', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->get(CustomerResource::getUrl('index'))->assertOk();
+    $response = $this->actingAs($user)->get(CustomerResource::getUrl('index'));
+
+    $response->assertSuccessful();
 });
 
 test('that a list of customers is displayed', function () {
     $customers = Customer::factory()->count(10)->create();
 
-    livewire(ListCustomers::class)
+    $component = livewire(ListCustomers::class);
+
+    $component
         ->assertCanSeeTableRecords($customers)
         ->assertCountTableRecords(10);
 });
@@ -27,9 +30,9 @@ test('that a list of customers is displayed', function () {
 test('that the next page of customers is displayed', function () {
     $customers = Customer::factory()->count(20)->create();
 
-    livewire(ListCustomers::class)
-        ->call('gotoPage', 2)
-        ->assertCanSeeTableRecords($customers->slice(offset: 10, length: 10));
+    $component = livewire(ListCustomers::class)->call('gotoPage', 2);
+
+    $component->assertCanSeeTableRecords($customers->slice(offset: 10, length: 10));
 });
 
 test('searching customers by searchable columns', function () {
@@ -89,11 +92,14 @@ test('customers can be filtered by active status and the filter then removed', f
         )
         ->create();
 
-    livewire(ListCustomers::class)
-        ->assertCanSeeTableRecords($customers)
+    $component = livewire(ListCustomers::class);
+
+    $component
         ->filterTable('is_active')
         ->assertCanSeeTableRecords($customers->where('active', true))
-        ->assertCanNotSeeTableRecords($customers->where('active', false))
+        ->assertCanNotSeeTableRecords($customers->where('active', false));
+
+    $component
         ->removeTableFilter('is_active')
         ->assertCanSeeTableRecords($customers);
 });

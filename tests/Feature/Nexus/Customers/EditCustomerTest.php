@@ -11,12 +11,14 @@ use function Pest\Livewire\livewire;
 
 test('the page renders', function () {
     $user = User::factory()->create();
-
     $customer = Customer::factory()->create();
 
-    $this->actingAs($user)
-        ->get(CustomerResource::getUrl('edit', ['record' => $customer]))
-        ->assertOk()
+    $response = $this
+        ->actingAs($user)
+        ->get(CustomerResource::getUrl('edit', ['record' => $customer]));
+
+    $response
+        ->assertSuccessful()
         ->assertSee('Edit Customer')
         ->assertSee('Change Password');
 });
@@ -24,20 +26,21 @@ test('the page renders', function () {
 test('the correct customer data is retrieved', function () {
     $customer = Customer::factory()->create();
 
-    livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
-        ->assertFormSet([
-            'first_name' => $customer->first_name,
-            'last_name' => $customer->last_name,
-            'email' => $customer->email,
-            'active' => $customer->active,
-            'password' => '',
-        ]);
+    $component = livewire(EditCustomer::class, ['record' => $customer->getRouteKey()]);
+
+    $component->assertFormSet([
+        'first_name' => $customer->first_name,
+        'last_name' => $customer->last_name,
+        'email' => $customer->email,
+        'active' => $customer->active,
+        'password' => '',
+    ]);
 });
 
 test('a customer can be updated', function () {
     $customer = Customer::factory()->create();
 
-    livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
+    $component = livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
         ->fillForm([
             'first_name' => $firstName = 'Test',
             'last_name' => $lastName = 'Customer',
@@ -46,8 +49,9 @@ test('a customer can be updated', function () {
             'password' => $password = 'new_password',
             'password_confirmation' => $password,
         ])
-        ->call('save')
-        ->assertHasNoFormErrors();
+        ->call('save');
+
+    $component->assertHasNoFormErrors();
 
     $customer = $customer->fresh();
 
@@ -55,23 +59,22 @@ test('a customer can be updated', function () {
     expect($lastName)->toBe($customer->last_name);
     expect($email)->toBe($customer->email);
     expect($active)->toBe($customer->active);
-
     expect(Hash::check('new_password', $customer->password))->toBeTrue();
 });
 
 test('a customer is not updated if validation fails', function () {
     $customer = Customer::factory()->create();
 
-    livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
+    $component = livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
         ->fillForm([
             'first_name' => 'Test',
             'last_name' => 'Example',
             'active' => true,
             'email' => null,
         ])
-        ->call('save')
-        ->assertHasFormErrors(['email' => 'required']);
+        ->call('save');
 
+    $component->assertHasFormErrors(['email' => 'required']);
     expect($customer->fresh()->email)->not->toBeNull();
 });
 

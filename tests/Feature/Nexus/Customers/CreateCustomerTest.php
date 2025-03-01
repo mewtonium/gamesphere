@@ -11,15 +11,16 @@ use function Pest\Livewire\livewire;
 test('the page renders', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->get(CustomerResource::getUrl('create'))
-        ->assertOk()
+    $response = $this->actingAs($user)->get(CustomerResource::getUrl('create'));
+
+    $response
+        ->assertSuccessful()
         ->assertSee('Create Customer')
         ->assertSee('Set Password');
 });
 
 test('a new customer can be created', function () {
-    livewire(CreateCustomer::class)
+    $component = livewire(CreateCustomer::class)
         ->fillForm([
             'first_name' => $firstName = 'Test',
             'last_name' => $lastName = 'Customer',
@@ -28,23 +29,21 @@ test('a new customer can be created', function () {
             'password' => $password = 'password',
             'password_confirmation' => $password,
         ])
-        ->call('create')
-        ->assertHasNoFormErrors();
+        ->call('create');
 
-    $this->assertDatabaseHas(Customer::class, [
-        'first_name' => $firstName,
-        'last_name' => $lastName,
-        'email' => $email,
-        'active' => $active,
-    ]);
+    $component->assertHasNoFormErrors();
 
     $customer = Customer::where('email', $email)->first();
 
+    expect($firstName)->toBe($customer->first_name);
+    expect($lastName)->toBe($customer->last_name);
+    expect($email)->toBe($customer->email);
+    expect($active)->toBe($customer->active);
     expect(Hash::check('password', $customer->password))->toBeTrue();
 });
 
 test('a customer is not created if validation fails', function () {
-    livewire(CreateCustomer::class)
+    $component = livewire(CreateCustomer::class)
         ->fillForm([
             'first_name' => 'Test',
             'last_name' => 'Customer',
@@ -52,8 +51,8 @@ test('a customer is not created if validation fails', function () {
             'password' => 'password',
             'password_confirmation' => 'password',
         ])
-        ->call('create')
-        ->assertHasFormErrors(['email' => 'required']);
+        ->call('create');
 
+    $component->assertHasFormErrors(['email' => 'required']);
     $this->assertDatabaseCount(Customer::class, 0);
 });

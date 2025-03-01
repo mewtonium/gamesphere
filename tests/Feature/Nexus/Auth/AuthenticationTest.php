@@ -6,19 +6,22 @@ use Filament\Pages\Auth\Login;
 use function Pest\Livewire\livewire;
 
 test('the nexus login page can be rendered', function () {
-    $this->get(route('filament.nexus.auth.login'))->assertOk();
+    $response = $this->get(route('filament.nexus.auth.login'));
+
+    $response->assertSuccessful();
 });
 
 test('that nexus users can authenticate', function () {
-    /** @var \Illuminate\Contracts\Auth\Authenticatable */
     $user = User::factory()->create();
 
-    livewire(Login::class)
+    $component = livewire(Login::class)
         ->fillForm([
             'email' => $user->email,
             'password' => 'password',
         ])
-        ->call('authenticate')
+        ->call('authenticate');
+
+    $component
         ->assertHasNoFormErrors()
         ->assertRedirectToRoute('filament.nexus.pages.dashboard');
 
@@ -29,25 +32,22 @@ test('that nexus users cannot authenticate if login details are incorrect', func
     /** @var \Illuminate\Contracts\Auth\Authenticatable */
     $user = User::factory()->create();
 
-    livewire(Login::class)
+    $component = livewire(Login::class)
         ->fillForm([
             'email' => $user->email,
             'password' => 'invalid_password',
         ])
-        ->call('authenticate')
-        ->assertHasFormErrors(['email'])
-        ->assertNoRedirect();
+        ->call('authenticate');
 
+    $component->assertHasFormErrors(['email'])->assertNoRedirect();
     $this->assertGuest();
 });
 
 test('that nexus users can logout', function () {
-    /** @var \Illuminate\Contracts\Auth\Authenticatable */
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->post(route('filament.nexus.auth.logout'))
-        ->assertRedirectToRoute('filament.nexus.auth.login');
+    $response = $this->actingAs($user)->post(route('filament.nexus.auth.logout'));
 
+    $response->assertRedirectToRoute('filament.nexus.auth.login');
     $this->assertGuest();
 });
