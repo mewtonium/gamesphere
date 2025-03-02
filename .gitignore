@@ -8,6 +8,7 @@
 /public/vendor
 /storage/*.key
 /storage/pail
+/tests/Coverage
 /vendor
 .DS_Store
 .env
