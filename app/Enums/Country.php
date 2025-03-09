@@ -2,11 +2,11 @@
 
 namespace App\Enums;
 
-use App\Enums\Concerns\InteractsWithEnums;
+use App\Enums\Concerns\EnumUtils;
 
 enum Country: string
 {
-    use InteractsWithEnums;
+    use EnumUtils;
 
     case AD = 'Andorra';
     case AE = 'United Arab Emirates';
@@ -256,20 +256,4 @@ enum Country: string
     case ZA = 'South Africa';
     case ZM = 'Zambia';
     case ZW = 'Zimbabwe';
-
-    /**
-     * Returns a list of all country codes.
-     */
-    public static function codes(): array
-    {
-        return self::names();
-    }
-
-    /**
-     * Returns a list of all country names.
-     */
-    public static function names(): array
-    {
-        return self::values();
-    }
 }
