@@ -29,9 +29,7 @@ test('the addresses relation manager renders', function () {
 });
 
 test('that addresses are listed', function () {
-    $this->component->set('tableRecordsPerPage', 20);
-
-    $this->component->assertCanSeeTableRecords($this->customer->addresses);
+    $this->component->assertCanSeeTableRecords($this->customer->addresses->take(5));
 });
 
 test('the next page of addresses is viewable', function () {

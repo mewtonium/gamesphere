@@ -9,13 +9,21 @@ use Illuminate\Support\Facades\Hash;
 
 use function Pest\Livewire\livewire;
 
+beforeEach(function () {
+    $this->customer = Customer::factory()->create();
+
+    $this->component = livewire(
+        name: EditCustomer::class,
+        params: ['record' => $this->customer->getRouteKey()],
+    );
+});
+
 test('the page renders', function () {
     $user = User::factory()->create();
-    $customer = Customer::factory()->create();
 
     $response = $this
         ->actingAs($user, 'nexus')
-        ->get(CustomerResource::getUrl('edit', ['record' => $customer]));
+        ->get(CustomerResource::getUrl('edit', ['record' => $this->customer]));
 
     $response
         ->assertSuccessful()
@@ -24,23 +32,17 @@ test('the page renders', function () {
 });
 
 test('the correct customer data is retrieved', function () {
-    $customer = Customer::factory()->create();
-
-    $component = livewire(EditCustomer::class, ['record' => $customer->getRouteKey()]);
-
-    $component->assertFormSet([
-        'first_name' => $customer->first_name,
-        'last_name' => $customer->last_name,
-        'email' => $customer->email,
-        'active' => $customer->active,
+    $this->component->assertFormSet([
+        'first_name' => $this->customer->first_name,
+        'last_name' => $this->customer->last_name,
+        'email' => $this->customer->email,
+        'active' => $this->customer->active,
         'password' => '',
     ]);
 });
 
 test('a customer can be updated', function () {
-    $customer = Customer::factory()->create();
-
-    $component = livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
+    $this->component
         ->fillForm([
             'first_name' => $firstName = 'Test',
             'last_name' => $lastName = 'Customer',
@@ -51,21 +53,19 @@ test('a customer can be updated', function () {
         ])
         ->call('save');
 
-    $component->assertHasNoFormErrors();
+    $this->component->assertHasNoFormErrors();
 
-    $customer->refresh();
+    $this->customer->refresh();
 
-    expect($firstName)->toBe($customer->first_name);
-    expect($lastName)->toBe($customer->last_name);
-    expect($email)->toBe($customer->email);
-    expect($active)->toBe($customer->active);
-    expect(Hash::check('new_password', $customer->password))->toBeTrue();
+    expect($firstName)->toBe($this->customer->first_name);
+    expect($lastName)->toBe($this->customer->last_name);
+    expect($email)->toBe($this->customer->email);
+    expect($active)->toBe($this->customer->active);
+    expect(Hash::check('new_password', $this->customer->password))->toBeTrue();
 });
 
 test('a customer is not updated if validation fails', function () {
-    $customer = Customer::factory()->create();
-
-    $component = livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
+    $this->component
         ->fillForm([
             'first_name' => 'Test',
             'last_name' => 'Example',
@@ -74,14 +74,12 @@ test('a customer is not updated if validation fails', function () {
         ])
         ->call('save');
 
-    $component->assertHasFormErrors(['email' => 'required']);
-    expect($customer->fresh()->email)->not->toBeNull();
+    $this->component->assertHasFormErrors(['email' => 'required']);
+    expect($this->customer->fresh()->email)->not->toBeNull();
 });
 
 test('the password is not changed if left empty', function () {
-    $customer = Customer::factory()->create();
-
-    livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
+    $this->component
         ->fillForm([
             'first_name' => 'Test',
             'last_name' => 'Customer',
@@ -90,14 +88,11 @@ test('the password is not changed if left empty', function () {
         ])
         ->call('save');
 
-    expect(Hash::check('password', $customer->fresh()->password))->toBeTrue();
+    expect(Hash::check('password', $this->customer->fresh()->password))->toBeTrue();
 });
 
 test('a customer can be deleted', function () {
-    $customer = Customer::factory()->create();
+    $this->component->callAction(DeleteAction::class);
 
-    livewire(EditCustomer::class, ['record' => $customer->getRouteKey()])
-        ->callAction(DeleteAction::class);
-
-    $this->assertModelMissing($customer);
+    $this->assertModelMissing($this->customer);
 });
