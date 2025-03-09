@@ -9,34 +9,27 @@ use Filament\Tables\Actions\CreateAction;
 
 use function Pest\Livewire\livewire;
 
-test('the create address modal displays', function () {
-    $customer = Customer::factory()->create();
+beforeEach(function () {
+    $this->customer = Customer::factory()->create();
 
-    $component = livewire(
+    $this->component = livewire(
         name: AddressesRelationManager::class,
         params: [
-            'ownerRecord' => $customer,
+            'ownerRecord' => $this->customer,
             'pageClass' => EditCustomer::class,
         ],
     );
+});
 
-    $component->mountTableAction(CreateAction::class);
+test('the create address modal displays', function () {
+    $this->component->mountTableAction(CreateAction::class);
 
-    $component->assertSee('Create address');
+    $this->component->assertSee('Create address');
 });
 
 test('a new address can be created', function () {
-    $customer = Customer::factory()->create();
-
-    $component = livewire(
-        name: AddressesRelationManager::class,
-        params: [
-            'ownerRecord' => $customer,
-            'pageClass' => EditCustomer::class,
-        ],
-    );
-
-    $component->mountTableAction(CreateAction::class)
+    $this->component
+        ->mountTableAction(CreateAction::class)
         ->setTableActionData([
             'company' => $company = 'Test Company',
             'line_1' => $line1 = 'Test Line 1',
@@ -50,7 +43,7 @@ test('a new address can be created', function () {
         ])
         ->callMountedTableAction();
 
-    $component->assertHasNoTableActionErrors();
+    $this->component->assertHasNoTableActionErrors();
 
     $this->assertDatabaseHas(Address::class, [
         'company' => $company,
@@ -66,17 +59,8 @@ test('a new address can be created', function () {
 });
 
 test('an address is not created if the form is invalid', function () {
-    $customer = Customer::factory()->create();
-
-    $component = livewire(
-        name: AddressesRelationManager::class,
-        params: [
-            'ownerRecord' => $customer,
-            'pageClass' => EditCustomer::class,
-        ],
-    );
-
-    $component->mountTableAction(CreateAction::class)
+    $this->component
+        ->mountTableAction(CreateAction::class)
         ->setTableActionData([
             'company' => 'Test Company',
             'line_1' => 'Test Line 1',
@@ -90,6 +74,6 @@ test('an address is not created if the form is invalid', function () {
         ])
         ->callMountedTableAction();
 
-    $component->assertHasTableActionErrors(['postal_code' => 'required']);
+    $this->component->assertHasTableActionErrors(['postal_code' => 'required']);
     $this->assertDatabaseCount(Address::class, 0);
 });

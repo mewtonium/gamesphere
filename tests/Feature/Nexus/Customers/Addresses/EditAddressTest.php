@@ -8,22 +8,23 @@ use Filament\Tables\Actions\EditAction;
 
 use function Pest\Livewire\livewire;
 
-test('the edit address modal displays and shows the correct address details', function () {
-    $customer = Customer::factory()
-        ->hasAddresses(1)
-        ->create();
+beforeEach(function () {
+    $this->customer = Customer::factory()->hasAddresses(1)->create();
 
-    $component = livewire(
+    $this->component = livewire(
         name: AddressesRelationManager::class,
         params: [
-            'ownerRecord' => $customer,
+            'ownerRecord' => $this->customer,
             'pageClass' => EditCustomer::class,
         ],
     );
+});
 
-    $component->mountTableAction(EditAction::class, $address = $customer->addresses->first());
+test('the edit address modal displays and shows the correct address details', function () {
+    $this->component->mountTableAction(EditAction::class, $address = $this->customer->addresses->first());
 
-    $component->assertSee("Edit {$address->line_1}")
+    $this->component
+        ->assertSee("Edit {$address->line_1}")
         ->assertSee($address->line_1)
         ->assertSee($address->line_2)
         ->assertSee($address->line_3)
@@ -35,19 +36,8 @@ test('the edit address modal displays and shows the correct address details', fu
 });
 
 test('an address can be updated', function () {
-    $customer = Customer::factory()
-        ->hasAddresses(1)
-        ->create();
-
-    $component = livewire(
-        name: AddressesRelationManager::class,
-        params: [
-            'ownerRecord' => $customer,
-            'pageClass' => EditCustomer::class,
-        ],
-    );
-
-    $component->mountTableAction(EditAction::class, $address = $customer->addresses->first())
+    $this->component
+        ->mountTableAction(EditAction::class, $address = $this->customer->addresses->first())
         ->setTableActionData([
             'company' => $company = 'Test Company',
             'line_1' => $line1 = 'Test Line 1',
@@ -63,7 +53,7 @@ test('an address can be updated', function () {
 
     $address->refresh();
 
-    $component->assertHasNoTableActionErrors();
+    $this->component->assertHasNoTableActionErrors();
     expect($address->company)->toBe($company);
     expect($address->line_1)->toBe($line1);
     expect($address->line_2)->toBe($line2);
@@ -76,19 +66,8 @@ test('an address can be updated', function () {
 });
 
 test('an address is not updated if the form is invalid', function () {
-    $customer = Customer::factory()
-        ->hasAddresses(1)
-        ->create();
-
-    $component = livewire(
-        name: AddressesRelationManager::class,
-        params: [
-            'ownerRecord' => $customer,
-            'pageClass' => EditCustomer::class,
-        ],
-    );
-
-    $component->mountTableAction(EditAction::class, $address = $customer->addresses->first())
+    $this->component
+        ->mountTableAction(EditAction::class, $address = $this->customer->addresses->first())
         ->setTableActionData([
             'company' => 'Test Company',
             'line_1' => 'Test Line 1',
@@ -102,6 +81,6 @@ test('an address is not updated if the form is invalid', function () {
         ])
         ->callMountedTableAction();
 
-    $component->assertHasTableActionErrors(['postal_code' => 'required']);
+    $this->component->assertHasTableActionErrors(['postal_code' => 'required']);
     $this->assertNotNull($address->fresh()->postal_code);
 });
